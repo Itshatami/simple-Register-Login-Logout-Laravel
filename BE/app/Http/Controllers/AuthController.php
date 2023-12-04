@@ -44,25 +44,39 @@ class AuthController extends Controller
         ]);
     }
 
-    public function login(Request $request){
+
+    /*
+    |  send this paramether
+    |  email
+    |  password
+    */
+    public function login(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'email' => ['required', 'email'],
             'password' => ['required', 'min:5'],
         ]);
-        if($validator->fails()){
-            return response()->json(['status'=>false , $validator->messages()]);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, $validator->messages()]);
         }
-        $user = User::where('email' , $request->email)->first();
-        if(!$user){
-            return response()->json(['status'=>false , 'message'=>'user does not found']);
-        }else if(!Hash::check($request->password , $user->password)){
-            return response()->json(['status'=>false , 'message'=>'password incorrect']);
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'user does not found']);
+        } else if (!Hash::check($request->password, $user->password)) {
+            return response()->json(['status' => false, 'message' => 'password incorrect']);
         }
         $token = $user->createToken('myToken')->accessToken;
         return response()->json([
-            'status'=>true,
-            'user'=>$user,
-            'token'=>$token
+            'status' => true,
+            'user' => $user,
+            'token' => $token
         ]);
+    }
+
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+        $user->tokens()->delete();
+        return response(['status' => true, 'message' => 'your loged out']);
     }
 }
